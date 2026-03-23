@@ -106,27 +106,39 @@ export default function Home() {
 
   // ================= EXPORT PDF =================
   function exportPDF() {
-    const doc = new jsPDF();
+  if (selectedPatients.length === 0) {
+    alert("Please select at least one patient.");
+    return;
+  }
 
-    selectedPatients.forEach((p, index) => {
-      doc.text(`Patient ${index + 1}`, 10, 10);
+  const doc = new jsPDF();
 
-      const rows = Object.entries(p.data).map(([k, v]) => [
-        k,
-        typeof v === "object" ? JSON.stringify(v) : v,
-      ]);
+  selectedPatients.forEach((p, index) => {
+    doc.setFontSize(16);
+    doc.text(`Patient ${index + 1}`, 10, 10);
 
-      autoTable(doc, {
-        head: [["Field", "Value"]],
-        body: rows,
-        startY: 20,
-      });
+    const rows: string[][] = Object.entries(p.data || {}).map(([k, v]) => [
+      String(k ?? ""),
+      v === undefined || v === null
+        ? ""
+        : typeof v === "object"
+        ? JSON.stringify(v)
+        : String(v),
+    ]);
 
-      if (index !== selectedPatients.length - 1) doc.addPage();
+    autoTable(doc, {
+      head: [["Field", "Value"]],
+      body: rows,
+      startY: 20,
     });
 
-    doc.save("patients.pdf");
-  }
+    if (index !== selectedPatients.length - 1) {
+      doc.addPage();
+    }
+  });
+
+  doc.save("patients.pdf");
+}
 
   // ================= EXPORT EXCEL =================
   function exportExcel() {
